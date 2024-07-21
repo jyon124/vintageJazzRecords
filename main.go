@@ -23,25 +23,8 @@ type album struct {
 var db *sqlx.DB
 
 func main() {
-	var err error
-	// Retrieve the DATABASE_URL from environment variables
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		log.Print("Using Local PostgreSQL DB...")
-		db, err = sqlx.Connect(
-			"postgres",
-			"user=adminjazz dbname=vintagejazzrecord sslmode=disable password=mys3cret",
-		)
-		if err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		// Connect to the database using the DATABASE_URL
-		db, err = sqlx.Connect("postgres", databaseURL)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+
+	databaseInit()
 
 	createTable()
 
@@ -72,6 +55,28 @@ func CORSMiddleware() gin.HandlerFunc {
 			return
 		}
 		c.Next()
+	}
+}
+
+func databaseInit() {
+	var err error
+	// Retrieve the DATABASE_URL from environment variables
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		log.Print("Using Local PostgreSQL DB...")
+		db, err = sqlx.Connect(
+			"postgres",
+			"user=adminjazz dbname=vintagejazzrecord sslmode=disable password=mys3cret",
+		)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		// Connect to the database using the DATABASE_URL
+		db, err = sqlx.Connect("postgres", databaseURL)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
