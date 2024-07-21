@@ -1,0 +1,24 @@
+databases:
+  - name: clipbox_service_db
+    databaseName: clipbox_service_db
+    user: clipbox_service_db
+    plan: free
+    ipAllowList: []
+
+services:
+  - type: web
+    name: clipbox_service
+    runtime: go
+    plan: free
+    buildCommand: "./bin/render-build.sh"
+    startCommand: "./main.go"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: clipbox_service_db
+          property: connectionString
+  - type: redis
+    name: clipbox_service_redis
+    ipAllowList: []
+    plan: free
+    maxmemoryPolicy: noeviction
