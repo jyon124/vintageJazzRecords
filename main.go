@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -23,7 +24,10 @@ var db *sqlx.DB
 
 func main() {
 	var err error
-	db, err = sqlx.Connect("postgres", "user=adminjazz dbname=vintagejazzrecord sslmode=disable password=mys3cret")
+	db, err = sqlx.Connect(
+		"postgres",
+		"user=adminjazz dbname=vintagejazzrecord sslmode=disable password=mys3cret",
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,11 +35,33 @@ func main() {
 	createTable()
 
 	router := gin.Default()
+	router.Use(CORSMiddleware())
 	router.GET("/albums", getAlbums)
 	router.GET("/albums/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
-	router.Run("localhost:8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := router.Run(":" + port); err != nil {
+		log.Panicf("error: %s", err)
+	}
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	}
 }
 
 // createTable creates the albums table if it does not exist
